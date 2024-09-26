@@ -1,0 +1,9 @@
+$RESOURCE_GROUP_NAME= "rg-PhilippMeier-tfstate"
+$STORAGE_ACCOUNT_NAME= "philippmeiertfstate"
+
+#Create account access key
+$ACCOUNT_KEY=$(az storage account keys list --resource-group "$RESOURCE_GROUP_NAME" --account-name "$STORAGE_ACCOUNT_NAME" --query '[0].value' -o tsv)
+export $ARM_ACCESS_KEY=$ACCOUNT_KEY
+
+#When KeyVault configured; Save account access in key vault to further harden
+export ARM_ACCESS_KEY=$(az keyvault secret show --name terraform-backend-key --vault-name ttatestvault123456 --query value -o tsv)
