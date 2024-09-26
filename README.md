@@ -1,86 +1,117 @@
-Terraform 3-Tier Architecture Web App
-Übersicht
-Eine Einführung in das Projekt, einschließlich einer Beschreibung der Ziele und einer kurzen Erklärung der Drei-Schichten-Architektur.
+# Terraform Drei-Schichten-Architektur-Projekt
 
-Projektstruktur
-Dieser Abschnitt erklärt den Aufbau des Terraform-Projekts. Hier wird beschrieben, wie das Projekt organisiert ist und welche Module enthalten sind:
+## Übersicht
 
-Netzwerkmodul: Erstellt das virtuelle Netzwerk und die Subnetze für jede Schicht (Frontend, Backend, Datenbank).
-Speichermodul:
-Terraform-State-Speicher: Speichert den Terraform-State für Versionsverwaltung und Teamarbeit.
-Datenbank-Backup-Speicher: Sichert die Container-Instanz der PostgreSQL-Datenbank.
-Frontend-Modul: Stellt das Frontend (Speedtest Web-App) als Container-Instanz bereit.
-Backend-Modul: Bereitstellung der Geschäftslogik, die Anfragen vom Frontend verarbeitet, ebenfalls in einer Container-Instanz.
-Datenbank-Modul: Stellt die PostgreSQL-Datenbank in einer Container-Instanz bereit und sichert sie in einem separaten Speicher.
-Nutzung
-Konfiguration und Anpassung
-Hier werden die verschiedenen Konfigurationsmöglichkeiten erläutert, die über Terraform-Variablen gesteuert werden können. Folgende Punkte sind besonders hervorzuheben:
+*In diesem Abschnitt wird eine Einführung in das Projekt gegeben, einschließlich einer Beschreibung der Ziele, einer kurzen Erklärung der Drei-Schichten-Architektur und einer allgemeinen Übersicht über die Infrastruktur.*
 
-Docker-Images: Die Benutzer können ihre eigenen Docker-Images für Frontend, Backend und Datenbank angeben.
-Backend-Variablen: Konfiguration von Port, Datenbanktyp und Backend-Image.
-Datenbank-Zugangsdaten: Variablen zur Anpassung des Datenbankbenutzernamens, Passworts und Datenbanknamens.
-Datenbank-Speicher: Speicherpfad für die Datenbankdaten, der auch für Backups genutzt wird.
-Subnetze: Das Netzwerk wird über intern vordefinierte Subnetze bereitgestellt.
-Bereitstellung der Infrastruktur
-Nachdem du die gewünschten Anpassungen vorgenommen hast, kannst du mit den folgenden Terraform-Befehlen die Infrastruktur bereitstellen. Du hast dabei die Möglichkeit, entweder das gesamte Projekt oder nur spezifische Module zu planen und anzuwenden.
+## Projektstruktur
 
-Terraform initialisieren: Dieser Schritt lädt die benötigten Provider und Module, um das Projekt vorzubereiten.
+*Dieser Abschnitt erklärt den Aufbau des Terraform-Projekts. Es wird beschrieben, wie das Projekt organisiert ist, welche Ordner und Module es gibt und wie diese zusammenarbeiten.*
 
-```bash
-terraform init  
-```
+- **Netzwerkmodul**: *Dieses Modul definiert das virtuelle Netzwerk und die Subnetze für jede Schicht (Frontend, Backend, Datenbank).*
 
-Komplette Infrastruktur planen und anwenden: Wenn du die gesamte Infrastruktur (alle Module) planen und bereitstellen möchtest, kannst du den normalen Plan- und Anwendungsprozess durchführen:
+- **Speichermodul**: *Hier gibt es zwei Speicherkomponenten:*
+  1. **Terraform-State-Speicher**: *Dieser Speicher wird verwendet, um den Terraform-State sicher abzulegen und Versionsverwaltung sowie Teamarbeit zu ermöglichen.*
+  2. **Datenbank-Backup-Speicher**: *Dieser Speicher dient zur Sicherung der Container-Instanz, die die PostgreSQL-Datenbank hostet. Dies stellt sicher, dass Daten regelmäßig gesichert werden und bei Bedarf wiederhergestellt werden können.*
 
-Plan erstellen: 
-```bash 
-terraform plan 
-```
+- **Frontend-Modul**: *Das Modul stellt die Frontend-Komponente (Speedtest Web-App) bereit, die in einer Container-Instanz läuft und in das Netzwerk integriert ist.*
 
-Änderungen anwenden: 
-```bash 
-terraform apply
-```
+- **Backend-Modul**: *Das Modul stellt die Geschäftslogik bereit, die Anfragen vom Frontend verarbeitet und die Kommunikation mit der Datenbank sicherstellt. Auch diese Schicht läuft in einer Container-Instanz.*
 
-Nachdem der apply-Prozess abgeschlossen ist, wird Terraform im Output sowohl die IP-Adresse als auch den Hostname der Web-Applikation anzeigen, unter der das Frontend erreichbar ist. Diese Informationen können dann verwendet werden, um auf die bereitgestellte Applikation zuzugreifen.
+- **Datenbank-Modul**: *Dieses Modul sorgt für die Bereitstellung der Datenbank in einer Container-Instanz (PostgreSQL) sowie deren Integration in das Netzwerk und die Speicherung der Backups im separaten Speicher.*
 
-Nur spezifisches Modul planen und anwenden: Wenn du nur ein spezifisches Modul (z. B. das Frontend) planen und anwenden möchtest, kannst du mit -target das Zielmodul angeben.
+## Nutzung
 
-Beispiel: Plan und Anwendung nur für das Frontend-Modul:
+### Konfiguration und Anpassung
 
-Plan erstellen: 
-```bash 
-terraform plan -target=module.frontend 
-```
+Bevor die Infrastruktur bereitgestellt wird, kannst du verschiedene Parameter im Code über Variablen anpassen, um die Bereitstellung nach deinen Anforderungen zu konfigurieren. Dies ermöglicht dir eine flexible Anpassung der Infrastruktur ohne tief in den Terraform-Code eingreifen zu müssen.
 
-Änderungen anwenden: 
-```bash 
-terraform apply -target=module.frontend
-```
+#### Anpassungsmöglichkeiten:
 
-Dies ist besonders nützlich, wenn du nur eine bestimmte Schicht der Infrastruktur anpassen oder aktualisieren möchtest, ohne die gesamte Infrastruktur erneut bereitstellen zu müssen.
+1. **Docker-Images**:
+   - Für die Bereitstellung der Frontend-, Backend- und Datenbank-Komponenten kannst du eigene Docker-Images verwenden. Dies ist besonders nützlich, wenn du Anpassungen an der Anwendung vornehmen möchtest, ohne den Terraform-Code zu ändern. Wenn du deine eigenen Docker-Images aus einer privaten Registry verwenden möchtest, sind folgende Variablen zu konfigurieren:
+     - **`frontend_image`**, **`backend_image`**, **`database_image`**: Die Images für die jeweiligen Komponenten (Frontend, Backend, Datenbank).
+     - **`image_registry_server`**: Die URL deiner privaten Container-Registry.
+     - **`image_registry_username`**: Dein Benutzername für die Registry.
+     - **`image_registry_password`**: Das Passwort für den Zugriff auf die Container-Registry.
 
-Weitere Beispiele für Modul-spezifische Befehle:
+   - Beispiel:
+     ```hcl
+     frontend_image         = "mein-repo.azurecr.io/mein-frontend-image:v1.2"
+     backend_image          = "mein-repo.azurecr.io/mein-backend-image:v1.2"
+     database_image         = "mein-repo.azurecr.io/mein-db-image:v1.2"
+     image_registry_server  = "mein-repo.azurecr.io"
+     image_registry_username = "mein-username"
+     image_registry_password = "mein-passwort"
+     ```
 
-Backend-Modul planen und anwenden: 
-```bash 
-terraform plan -target=module.backend terraform apply -target=module.backend
-```
+   - Wenn du eigene Container verwenden möchtest, kannst du diese Variablen anpassen, um auf deine private Registry zuzugreifen. Die Zugangsdaten stellen sicher, dass Terraform Zugriff auf die entsprechenden Docker-Images in der Registry hat, bevor es diese für die Infrastruktur verwendet.
 
-Datenbank-Modul planen und anwenden: 
-```bash 
-terraform plan -target=module.database terraform apply -target=module.database
-```
+2. **Backend-Variablen**:
+   - Das Backend hat verschiedene konfigurierbare Variablen, die für die Verbindung zum Frontend und zur Datenbank relevant sind:
+   
+     - **Backend-Port (`backend_port`)**: Dieser definiert, auf welchem Port das Backend vom Frontend aus erreichbar ist.
+       - Beispiel:
+         ```hcl
+         backend_port = "8080"
+         ```
+   
+     - **Datenbanktyp (`database_type`)**: Der Typ der Datenbank, mit der sich das Backend verbindet (z. B. PostgreSQL, MySQL). Dieser Wert ist entscheidend, um sicherzustellen, dass die Verbindung zur richtigen Datenbankart hergestellt wird.
+       - Beispiel:
+         ```hcl
+         database_type = "postgresql"
+         ```
+   
+     - **Backend-Image (`backend_image`)**: Das Docker-Image, das das Backend enthält. Änderungen am Backend können durch Aktualisieren dieses Images vorgenommen werden.
+       - Beispiel:
+         ```hcl
+         backend_image = "mein-repo.azurecr.io/mein-backend-image:v1.2"
+         ```
 
-Update der Applikation
+3. **Datenbank-Zugangsdaten**:
+   - Der Benutzername, das Passwort und der Datenbankname für die PostgreSQL-Datenbank können über Variablen angepasst werden. Diese Zugangsdaten werden sowohl für die Bereitstellung der Datenbank als auch dem Backend-Container bereitgestellt, um sicherzustellen, dass die Verbindung zur Datenbank reibungslos funktioniert.
+   - Beispiel:
+     ```hcl
+     database_user     = "mein-db-user"
+     database_password = "mein-db-passwort"
+     database_name     = "mein-db-name"
+     ```
+
+4. **Datenbank-Speicher (`database_data`)**:
+   - Die Variable `database_data` legt den Speicherort der Datenbankdaten auf dem Dateisystem des Containers fest. Dieser Pfad ist nicht nur für den Betrieb der Datenbank relevant, sondern auch für das Backup. Das Speicher-Modul der Infrastruktur bezieht sich auf dieses Verzeichnis, um von dort aus regelmäßige Backups der Datenbank zu erstellen und im Azure Blob Storage abzulegen. Dies stellt sicher, dass alle wichtigen Daten gesichert und bei Bedarf wiederhergestellt werden können.
+   - Beispiel:
+     ```hcl
+     database_data = "/var/lib/postgresql/data"
+     ```
+
+5. **Subnetze**:
+   - Das Netzwerkmodul erstellt ein virtuelles Netzwerk mit drei Subnetzen: eines für die Frontend-Komponente, eines für das Backend und eines für die Datenbank. Diese Subnetze sind intern vordefiniert, und die IP-Adressen werden im Hintergrund verwaltet, sodass keine Anpassung von außen erforderlich ist.
+
+#### Bereitstellung der Infrastruktur
+
+Nachdem du die gewünschten Anpassungen vorgenommen hast, kannst du mit den folgenden Terraform-Befehlen die Infrastruktur bereitstellen:
+
+1. **Terraform initialisieren**:
+   Dieser Schritt lädt die benötigten Provider und Module, um das Projekt vorzubereiten.
+   terraform init
+
+2. **Plan erstellen**:
+   Erstelle einen Plan, um alle geplanten Änderungen an der Infrastruktur zu überprüfen, bevor du sie anwendest. Dies ist besonders hilfreich, um sicherzustellen, dass die Anpassungen korrekt sind.
+   terraform plan
+
+3. **Änderungen anwenden**:
+   Wende den Plan an und setze die Infrastruktur in Azure um.
+   terraform apply
+## Updatebeispiel
+**Update der Applikation
 Wenn du den Frontend-Container updaten möchtest, beispielsweise um eine neue NGINX-Version einzusetzen, kannst du den Prozess in wenigen Schritten durchführen. Im Folgenden wird ein Beispiel für ein solches Update gezeigt:
 
 Neuen Container bauen und in der Registry bereitstellen:
-
 Stelle sicher, dass du einen neuen Docker-Container mit der gewünschten NGINX-Version baust und in der Container-Registry bereitstellst. Hier ein Beispiel, wie du eine neuere NGINX-Version baust und hochlädst:
+
 ```bash
 docker build -t mein-repo.azurecr.io/nginx.19
-docker push mein-repo.azurecr.io/nginx.19
+docker push mein-repo.azurecr.io/nginx.19 
 ```
 
 Wichtig:
@@ -116,11 +147,12 @@ terraform plan
 ```bash 
 terraform apply
 ```
+## Aufräumen
 
-Aufräumen
-Dieser Abschnitt erklärt, wie die Infrastruktur nach der Nutzung entfernt werden kann, um unnötige Kosten zu vermeiden.
+*Dieser Abschnitt erklärt, wie die Infrastruktur nach der Nutzung entfernt werden kann, um unnötige Kosten zu vermeiden.*
 
-```bash 
 terraform destroy
-```
 
+## Bekannte Probleme und Fehlerbehebung
+
+*In diesem Abschnitt werden häufig auftretende Probleme bei der Bereitstellung oder beim Update beschrieben und Lösungen angeboten.*
