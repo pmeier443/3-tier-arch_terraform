@@ -2,27 +2,36 @@
 
 ## Übersicht
 
-*In diesem Abschnitt wird eine Einführung in das Projekt gegeben, einschließlich einer Beschreibung der Ziele, einer kurzen Erklärung der Drei-Schichten-Architektur und einer allgemeinen Übersicht über die Infrastruktur.*
+*Dieses Projekt implementiert eine Drei-Schichten-Architektur in Azure unter Verwendung von Terraform. Die Infrastruktur besteht aus einem Frontend, einem Backend und einer Datenbankschicht, die alle in Container-Instanzen laufen und über ein Load Balancer verbunden sind.*
 
 ## Projektstruktur
 
-*Dieser Abschnitt erklärt den Aufbau des Terraform-Projekts. Es wird beschrieben, wie das Projekt organisiert ist, welche Ordner und Module es gibt und wie diese zusammenarbeiten.*
+*Dieser Abschnitt erklärt den Aufbau der Infrastruktur und der Terraform-Module.*
 
-- **Netzwerkmodul**: *Dieses Modul definiert das virtuelle Netzwerk und die Subnetze für jede Schicht (Frontend, Backend, Datenbank).*
+- **Netzwerkarchitektur**:
+  - **Virtuelles Netzwerk (VNet)**: Alle Subnetze (Frontend, Backend und Datenbank) sind in einem virtuellen Netzwerk organisiert, um eine sichere Kommunikation zwischen den Schichten zu ermöglichen.
+  - **Subnetze**:
+    - *Frontend-Subnet*: Beinhaltet die Container-Gruppe für den NGINX-Proxy.
+    - *Backend-Subnet*: Beinhaltet die Container-Gruppe für die Anwendungslogik (HTML/PHP).
+    - *Datenbank-Subnet*: Beinhaltet die PostgreSQL-Container-Gruppe.
+  - **Netzwerksicherheitsgruppen (NSG)**: Regelt den Datenverkehr zwischen den Subnetzen. Zugelassene Verbindungen:
+    - *Frontend*: HTTP (Port 80) und HTTPS (Port 443) für Webanfragen.
+    - *Backend*: Port 8082 für Anfragen vom Frontend.
+    - *Datenbank*: Port 5432 für PostgreSQL-Verbindungen.
 
-- **Speichermodul**: *Hier gibt es zwei Speicherkomponenten:*
-  1. **Terraform-State-Speicher**: *Dieser Speicher wird verwendet, um den Terraform-State sicher abzulegen und Versionsverwaltung sowie Teamarbeit zu ermöglichen.*
-  2. **Datenbank-Backup-Speicher**: *Dieser Speicher dient zur Sicherung der Container-Instanz, die die PostgreSQL-Datenbank hostet. Dies stellt sicher, dass Daten regelmäßig gesichert werden und bei Bedarf wiederhergestellt werden können.*
+- **Load Balancer**:
+  - Der Azure Load Balancer verteilt den eingehenden HTTP(S)-Verkehr auf die NGINX-Container-Gruppe im Frontend. Der Load Balancer bietet Hochverfügbarkeit und leitet den Traffic von Port 443 an das Frontend weiter.
 
-- **Frontend-Modul**: *Das Modul stellt die Frontend-Komponente (Speedtest Web-App) bereit, die in einer Container-Instanz läuft und in das Netzwerk integriert ist.*
+- **Container-Gruppen**:
+  - **Frontend**: NGINX Reverse Proxy, der Anfragen von Benutzern entgegennimmt und an das Backend weiterleitet.
+  - **Backend**: HTML/PHP-Container, der die Anwendungslogik verarbeitet und mit der Datenbank kommuniziert.
+  - **Datenbank**: PostgreSQL-Container, der Anfragen auf Port 5432 vom Backend verarbeitet.
 
-- **Backend-Modul**: *Das Modul stellt die Geschäftslogik bereit, die Anfragen vom Frontend verarbeitet und die Kommunikation mit der Datenbank sicherstellt. Auch diese Schicht läuft in einer Container-Instanz.*
-
-- **Datenbank-Modul**: *Dieses Modul sorgt für die Bereitstellung der Datenbank in einer Container-Instanz (PostgreSQL) sowie deren Integration in das Netzwerk und die Speicherung der Backups im separaten Speicher.*
+- **Speichermodul**:
+  - **Terraform-State-Speicher**: Der Terraform-State wird in einem Azure Storage Account gespeichert, um Versionskontrolle und Zusammenarbeit zu ermöglichen.
+  - **Datenbank-Backup-Speicher**: Ein separater Azure Storage Account wird für die Sicherung der PostgreSQL-Datenbank genutzt, um Daten persistent und unabhängig vom Lebenszyklus der Container zu speichern.
 
 ## Nutzungsvoraussetzungen
-
-Für die Nutzung dieses Projekts sind die folgenden Voraussetzungen notwendig:
 
 1. **Azure-Subscription und Terraform-Installation**:
    - Für die Bereitstellung der Infrastruktur wird eine Azure-Subscription benötigt. Zudem muss Terraform lokal installiert und konfiguriert sein.
