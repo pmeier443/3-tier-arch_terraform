@@ -1,8 +1,8 @@
-# Terraform Drei-Schichten-Architektur-Projekt
+# Terraform Three-Tier-Architecture-Projekt
 
 ## Übersicht
 
-*In diesem Abschnitt wird eine Einführung in das Projekt gegeben, einschließlich einer Beschreibung der Ziele, einer kurzen Erklärung der Drei-Schichten-Architektur und einer allgemeinen Übersicht über die Infrastruktur.*
+*In diesem Abschnitt wird eine Einführung in das Projekt gegeben, einschließlich einer Beschreibung der Ziele, einer kurzen Erklärung der Three-Tier-Architecture und einer allgemeinen Übersicht über die Infrastruktur.*
 
 ## Projektstruktur
 
