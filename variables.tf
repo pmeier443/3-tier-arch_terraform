@@ -8,7 +8,7 @@ variable "name" {
 }
 
 variable"subscription" {
-  default = "7fae56f8-ef32-4c6a-a8c1-53be8241e468"
+  default = ""
 }
 
 variable "image_registry_server" {
@@ -21,7 +21,7 @@ variable "image_registry_username" {
 }
 variable "image_registry_password" {
   type        = string
-  default     = "tjDRo1pL60aSMWGQqymdQ8vV2bmhCWc49K2tom+7RK+ACRDEmIaq"
+  default     = ""
 }
 
 ##NETWORK##
